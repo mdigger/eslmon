@@ -28,7 +28,10 @@ func TestRealConnection(t *testing.T) {
 
 	monitor := New(
 		os.Getenv("ESL_ADDR"),
-		os.Getenv("ESL_PASSWORD")) //  "10.10.61.92", "ClueCon"
-	monitor.Subscribe(eventsChan)
+		os.Getenv("ESL_PASSWORD"))
+	monitor.
+		// Subscribe(eventsChan).
+		Subscribe(eventsChan, "HEARTBEAT", "RE_SCHEDULE")
+
 	t.Error(monitor.Run(ctx))
 }

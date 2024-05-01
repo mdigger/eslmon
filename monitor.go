@@ -142,9 +142,12 @@ func (m *Monitor) WithCommandsTimeout(timeout time.Duration) *Monitor {
 
 // subscribe returns the command string with ESL event names to subscribe.
 func (m *Monitor) subscribe() string {
-	const cmdDubscribe = "event json"
+	const (
+		cmdDubscribe   = "event json"
+		eventsCapacity = 100
+	)
 
-	var events map[string]struct{}
+	events := make(map[string]struct{}, eventsCapacity)
 
 	for _, subscriber := range m.subscribers {
 		if len(subscriber.Names) == 0 {
