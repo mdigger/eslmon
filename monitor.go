@@ -143,7 +143,7 @@ func (m *Monitor) WithCommandsTimeout(timeout time.Duration) *Monitor {
 // subscribe returns the command string with ESL event names to subscribe.
 func (m *Monitor) subscribe() string {
 	const (
-		cmdDubscribe   = "event json"
+		cmdSubscribe   = "event json"
 		eventsCapacity = 100
 	)
 
@@ -151,7 +151,7 @@ func (m *Monitor) subscribe() string {
 
 	for _, subscriber := range m.subscribers {
 		if len(subscriber.Names) == 0 {
-			return cmdDubscribe + " ALL" // all events should be handled
+			return cmdSubscribe + " ALL" // all events should be handled
 		}
 
 		maps.Copy(events, subscriber.Names)
@@ -159,7 +159,7 @@ func (m *Monitor) subscribe() string {
 
 	var cmd, custom strings.Builder
 
-	cmd.WriteString(cmdDubscribe)
+	cmd.WriteString(cmdSubscribe)
 
 	for name := range events {
 		if _, ok := eventNames[name]; ok {
