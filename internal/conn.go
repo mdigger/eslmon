@@ -113,7 +113,7 @@ func (c *Conn) Read() (Response, error) {
 			resp.JobUUID = value
 		case "Content-Length":
 			contentLength, err = strconv.Atoi(value)
-			if err != nil {
+			if err != nil || contentLength < 0 {
 				return resp, fmt.Errorf("malformed content-length: %q", value)
 			}
 		default: // ignore unsupported headers
