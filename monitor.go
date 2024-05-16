@@ -107,7 +107,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 		}
 
 		switch resp.ContentType {
-		case "text/event-json":
+		case "text/event-plain":
 			event, err := parseEvent(resp.Body)
 			if err != nil {
 				return fmt.Errorf("event parse: %w", err)
@@ -143,7 +143,7 @@ func (m *Monitor) WithCommandsTimeout(timeout time.Duration) *Monitor {
 // subscribe returns the command string with ESL event names to subscribe.
 func (m *Monitor) subscribe() string {
 	const (
-		cmdSubscribe   = "event json"
+		cmdSubscribe   = "event plain"
 		eventsCapacity = 100
 	)
 

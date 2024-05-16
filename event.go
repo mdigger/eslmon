@@ -1,10 +1,11 @@
 package esl
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -96,14 +97,72 @@ func (e Event) LogValue() slog.Value {
 	return slog.GroupValue(attr...)
 }
 
-// parseEvent parses the given body as an ESL event in JSON format and returns it.
+// parseEvent parses the given body as an ESL event and returns it.
 func parseEvent(body string) (Event, error) {
-	var event Event
-	if err := json.Unmarshal([]byte(body), &event); err != nil {
-		return nil, fmt.Errorf("parse event: %w", err)
+	headers := make(map[string]string, upcomingHeaderKeys(body)+1)
+
+	for len(body) > 0 {
+		var header string
+
+		if i := strings.IndexByte(body, '\n'); i >= 0 {
+			header, body = body[:i], body[i+1:]
+		}
+
+		if len(header) == 0 {
+			break // the end of headers
+		}
+
+		idx := strings.IndexByte(header, ':')
+		if idx <= 0 {
+			return headers, fmt.Errorf("malformed header line: %q", header)
+		}
+
+		key, value := header[:idx], strings.TrimSpace(header[idx+1:])
+		if v, err := url.PathUnescape(value); err == nil {
+			value = v
+		}
+
+		headers[key] = value
 	}
 
-	return event, nil
+	if clen, err := strconv.Atoi(headers["Content-Length"]); err == nil && clen > 0 {
+		headers[bodyKey] = body[:clen]
+	}
+
+	return headers, nil
+}
+
+// upcomingHeaderKeys returns the number of upcoming header keys in the given byte slice.
+func upcomingHeaderKeys(body string) int {
+	const maxHeaders = 1000
+
+	var (
+		headersCount int
+		isNewLine    bool
+	)
+
+	for _, ch := range body {
+		switch ch {
+		case '\r', ' ', '\t':
+			continue
+		case '\n':
+			if isNewLine {
+				return headersCount
+			}
+
+			headersCount++
+
+			if headersCount == maxHeaders {
+				return headersCount
+			}
+
+			isNewLine = true
+		default:
+			isNewLine = false
+		}
+	}
+
+	return headersCount
 }
 
 // eventNames is a map that contains the predefined names of various events as keys.
