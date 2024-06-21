@@ -99,7 +99,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 	for {
 		resp, err := eslConn.Read()
 		if err != nil {
-			if err = context.Cause(ctx); err != nil {
+			if err := context.Cause(ctx); err != nil {
 				return fmt.Errorf("done: %w", err) // context error
 			}
 
